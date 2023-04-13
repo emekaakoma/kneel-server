@@ -1,6 +1,6 @@
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from views import get_all_metals, get_all_orders, get_all_sizes, get_all_styles, get_single_metal, get_single_order, get_single_style, get_single_size
+from views import get_all_metals, get_all_orders, get_all_sizes, get_all_styles, get_single_metal, get_single_order, get_single_style, get_single_size, create_order, update_order, delete_order
 
 
 class HandleRequests(BaseHTTPRequestHandler):
@@ -71,17 +71,57 @@ class HandleRequests(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(response).encode())
 
     def do_POST(self):
-        """Handles POST requests to the server """
         self._set_headers(201)
-
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
-        response = { "payload" : post_body }
-        self.wfile.write(json.dumps(response).encode())
+
+        # Convert JSON string to a Python dictionary
+        post_body = json.loads(post_body)
+
+        # Parse the URL
+        (resource, id) = self.parse_url(self.path)
+
+        # Initialize new animal
+        new_order = None
+
+        # Add a new animal to the list. Don't worry about
+        # the orange squiggle, you'll define the create_animal
+        # function next.
+        if resource == "orders":
+            new_order = create_order(post_body)
+
+        # Encode the new animal and send in response
+        self.wfile.write(json.dumps(new_order).encode())
 
     def do_PUT(self):
-        """Handles PUT requests to the server """
-        self.do_POST()
+        self._set_headers(204)
+        content_len = int(self.headers.get('content-length', 0))
+        post_body = self.rfile.read(content_len)
+        post_body = json.loads(post_body)
+
+        # Parse the URL
+        (resource, id) = self.parse_url(self.path)
+
+        # Delete a single animal from the list
+        if resource == "orders":
+            update_order(id, post_body)
+
+        # Encode the new animal and send in response
+        self.wfile.write("".encode())
+
+    def do_DELETE(self):
+    # Set a 204 response code
+        self._set_headers(204)
+
+    # Parse the URL
+        (resource, id) = self.parse_url(self.path)
+
+        # Delete a single animal from the list
+        if resource == "orders":
+            delete_order(id)
+
+        # Encode the new animal and send in response
+        self.wfile.write("".encode())
 
     def _set_headers(self, status):
         """Sets the status code, Content-Type and Access-Control-Allow-Origin
