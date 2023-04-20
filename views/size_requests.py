@@ -45,3 +45,30 @@ def get_single_size(id):
             requested_size = size
 
     return requested_size
+
+
+def create_size(size):
+    max_id = SIZES[-1]["id"]
+    new_id = max_id + 1
+
+    size["id"] = new_id
+    SIZES.append(size)
+
+    return size
+
+
+def delete_size(id):
+    size_index = -1
+    for index, size in enumerate(SIZES):
+        if size["id"] == id:
+            size_index = index
+
+    if size_index >= 0:
+        SIZES.pop(size_index)
+
+
+def update_size(id, new_size):
+    for index, size in enumerate(SIZES):
+        if size["id"] == id:
+            SIZES[index] = new_size
+            break
