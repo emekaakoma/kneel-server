@@ -1,7 +1,7 @@
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 # Import this stdlib package first
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 from views import get_all_metals, get_all_orders, get_all_sizes, get_all_styles, get_single_metal, get_single_order, get_single_style, get_single_size, create_order, update_order, delete_order, create_metal, create_size, create_style, update_metal, delete_metal, delete_size, delete_style, update_size, update_style
 
 
@@ -45,7 +45,7 @@ class HandleRequests(BaseHTTPRequestHandler):
     def parse_url(self, path):
         url_components = urlparse(path)
         path_params = url_components.path.strip("/").split("/")
-        query_params = url_components.query.split("&")
+        query_params = parse_qs(url_components.query)
         resource = path_params[0]
         id = None
 
@@ -55,7 +55,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             pass
         except ValueError:
             pass
-
+        
         return (resource, id, query_params)
 
     # Here's a method on the class that overrides the parent's method.
