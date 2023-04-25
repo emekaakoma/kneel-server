@@ -1,6 +1,8 @@
 from .metal_requests import get_single_metal
 from .size_requests import get_single_size
 from .style_requests import get_single_style
+import sqlite3
+from models import Order, Metal, Size, Style
 
 ORDERS = [
     {
@@ -14,7 +16,31 @@ ORDERS = [
 
 
 def get_all_orders():
-    return ORDERS
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn:
+
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        SELECT
+            o.id,
+            o.metal_id,
+            o.size_id,
+            o.style_id,
+            o.timestamp,
+        FROM "Orders" o
+        """)
+
+        orders = []
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            order = Order(row['id'], row['metal_id'], row['size_id'],
+                            row['style_id'], row['timestamp'])
+
+            orders.append(order.__dict__)
+
+    return orders
 
 
 # Function with a single parameter
