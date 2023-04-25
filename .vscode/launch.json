@@ -10,6 +10,16 @@
             "autoReload": {
                 "enable": true
             }
+        },
+        {
+            "name": "Server",
+            "type": "python",
+            "request": "launch",
+            "program": "./server.py",
+            "console": "integratedTerminal",
+            "autoReload": {
+                "enable": true
+            }
         }
     ]
 }

@@ -1,9 +1,9 @@
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 # Import this stdlib package first
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 from views import get_all_metals, get_all_orders, get_all_sizes, get_all_styles, get_single_metal, get_single_order, get_single_style, get_single_size, create_order, update_order, delete_order, create_metal, create_size, create_style, update_metal, delete_metal, delete_size, delete_style, update_size, update_style
-
+from repository import all, update, delete, create, retrieve
 
 method_mapper = {
     "metals": {
@@ -45,7 +45,7 @@ class HandleRequests(BaseHTTPRequestHandler):
     def parse_url(self, path):
         url_components = urlparse(path)
         path_params = url_components.path.strip("/").split("/")
-        query_params = url_components.query.split("&")
+        query_params = parse_qs(url_components.query)
         resource = path_params[0]
         id = None
 
@@ -56,14 +56,13 @@ class HandleRequests(BaseHTTPRequestHandler):
         except ValueError:
             pass
 
+        print(query_params)
+        
         return (resource, id, query_params)
 
-    # Here's a method on the class that overrides the parent's method.
-    # It handles any GET request.
-
-    def get_all_or_single(self, resource, id):
+    def get_all_or_single(self, resource, id, query_params):
         if id is not None:
-            response = method_mapper[resource]["single"](id)
+            response = retrieve(resource, id, query_params)
 
             if response is not None:
                 self._set_headers(200)
@@ -72,14 +71,14 @@ class HandleRequests(BaseHTTPRequestHandler):
                 response = ''
         else:
             self._set_headers(200)
-            response = method_mapper[resource]["all"]()
+            response = all(resource)
 
         return response
 
     def do_GET(self):
         response = None
         (resource, id, query_params) = self.parse_url(self.path)
-        response = self.get_all_or_single(resource, id)
+        response = self.get_all_or_single(resource, id, query_params)
         self.wfile.write(json.dumps(response).encode())
 
 
@@ -100,17 +99,10 @@ class HandleRequests(BaseHTTPRequestHandler):
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
 
-        # Convert JSON string to a Python dictionary
         post_body = json.loads(post_body)
-
-        # Parse the URL
         (resource, id, query_params) = self.parse_url(self.path)
 
-        # Initialize new order
         new_order = None
-        # Add a new order to the list. Don't worry about
-        # the orange squiggle, you'll define the create_animal
-        # function next.
         if resource == "orders":
             new_order = create_order(post_body)
             self.wfile.write(json.dumps(new_order).encode())
@@ -118,10 +110,11 @@ class HandleRequests(BaseHTTPRequestHandler):
             self.create_func(resource)
 
 
+
+
     def update_func(self, resource):
         if resource == "orders" or resource == "sizes" or resource == "styles":
             self._set_headers(405)
-
 
     def do_PUT(self):
         """This UPDATES the object"""
