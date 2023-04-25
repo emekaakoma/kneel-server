@@ -143,7 +143,7 @@ class HandleRequests(BaseHTTPRequestHandler):
 
 
     def delete_func(self, resource):
-        if resource == "orders" or resource == "styles" or resource == "metals" or resource == "sizes":
+        if resource == "styles" or resource == "metals" or resource == "sizes":
             self._set_headers(405)
             # resource = {
             #     "message": f'{"Deleting requires you to contact company directly"}'
@@ -154,7 +154,10 @@ class HandleRequests(BaseHTTPRequestHandler):
         """This DELETES the object"""
         (resource, id, query_params) = self.parse_url(self.path)
 
-        self.delete_func(resource)
+        if resource == 'orders':
+            delete_order(id)
+        else:
+            self.delete_func(resource)
         self.wfile.write("".encode())
 
     def _set_headers(self, status):

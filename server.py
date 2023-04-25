@@ -97,6 +97,7 @@ class HandleRequests(BaseHTTPRequestHandler):
 
     def do_POST(self):
         """This CREATES a new object"""
+        self._set_headers(201)
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
 
@@ -106,11 +107,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         # Parse the URL
         (resource, id, query_params) = self.parse_url(self.path)
 
-        # Initialize new order
         new_order = None
-        # Add a new order to the list. Don't worry about
-        # the orange squiggle, you'll define the create_animal
-        # function next.
         if resource == "orders":
             new_order = create_order(post_body)
             self.wfile.write(json.dumps(new_order).encode())
@@ -119,7 +116,7 @@ class HandleRequests(BaseHTTPRequestHandler):
 
 
     def update_func(self, resource):
-        if resource == "orders" or resource == "sizes" or resource == "styles":
+        if resource == "metals" or resource == "sizes" or resource == "styles":
             self._set_headers(405)
 
 
@@ -132,10 +129,15 @@ class HandleRequests(BaseHTTPRequestHandler):
         # Parse the URL
         (resource, id, query_params) = self.parse_url(self.path)
 
-        if resource == "metals":
-            update_metal(id, post_body)
+        success = False
+
+        if resource == "orders":
+            success = update_order(id, post_body)
+
+        if success:
+            self._set_headers(204)
         else:
-            self.update_func(resource)
+            self._set_headers(404)
         
         self.wfile.write("".encode())
 
@@ -143,7 +145,7 @@ class HandleRequests(BaseHTTPRequestHandler):
 
 
     def delete_func(self, resource):
-        if resource == "orders" or resource == "styles" or resource == "metals" or resource == "sizes":
+        if resource == "styles" or resource == "metals" or resource == "sizes":
             self._set_headers(405)
             # resource = {
             #     "message": f'{"Deleting requires you to contact company directly"}'
@@ -152,9 +154,13 @@ class HandleRequests(BaseHTTPRequestHandler):
 
     def do_DELETE(self):
         """This DELETES the object"""
+        self._set_headers(204)
         (resource, id, query_params) = self.parse_url(self.path)
 
-        self.delete_func(resource)
+        if resource == 'orders':
+            delete_order(id)
+        else:
+            self.delete_func(resource)
         self.wfile.write("".encode())
 
     def _set_headers(self, status):
